@@ -4,4 +4,4 @@ Docker build image for redis stack whitch extends Redis with modern data models 
 
 ## Build
 
-docker build -t <:docker_image_name:>:<:tag:>
+docker build -t <:docker_image_name:>:<:tag:> .
