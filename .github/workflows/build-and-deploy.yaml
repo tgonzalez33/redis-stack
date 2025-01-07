@@ -1,4 +1,4 @@
-name: Redis Stack - Build & Deploy
+name: Redis Stack - Build & Deploy on DockerHub
 
 on:
   push:
@@ -16,8 +16,10 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/redis-stack:latest .
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/redis-stack:latest
-      
+          DOCKER_REPO_PATH=${{ secrets.DOCKER_HUB_USERNAME }}/redis-stack
+          docker build -t $DOCKER_REPO_PATH:${{ github.ref == 'refs/heads/main' && 'latest' || 'staging' }} -t $DOCKER_REPO_PATH:${{ github.sha }} .
+          docker push $DOCKER_REPO_PATH:${{ github.ref == 'refs/heads/main' && 'latest' || 'staging' }}
+          docker push $DOCKER_REPO_PATH:${{ github.sha }}
+
       - name: Log out from Docker Hub
         run: docker logout
