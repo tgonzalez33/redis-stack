@@ -1,0 +1,33 @@
+name: Redis Stack - Build & Deploy
+
+on:
+  push:
+    branches: [master]
+
+env:
+  DOCKER_IMAGE_NAME: tgonzalez33/redis-stack
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/master' && 'latest' || 'staging' }}
+    steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
+
+        - name: Build Docker Image
+          run: docker build -t ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} .
+
+    push:
+      runs-on: ubuntu-latest
+      needs: build
+      environment: ${{ github.ref == 'refs/heads/master' && 'latest' || 'staging' }}
+      steps:
+        - name: Docker Login
+          run: echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+
+        - name: Tag and Push to Docker Hub
+          run: |
+              docker tag ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} ${{ env.DOCKER_IMAGE_NAME }}:${{ github.ref == 'refs/heads/master' && 'latest' || 'staging' }}
+              docker push ${{ env.DOCKER_IMAGE_NAME }}:${{ github.ref == 'refs/heads/master' && 'latest' || 'staging' }}
+              docker push ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
